@@ -21,7 +21,7 @@ namespace Locaserv.Test.Api.Configurations
             ActionExecutingContext context,
             ActionExecutionDelegate next)
         {
-            if (!context.HttpContext.Request.Query.TryGetValue(_apiConfig.Name, out var extractedApiKey))
+            if (!context.HttpContext.Request.Headers.TryGetValue(_apiConfig.Name, out var extractedApiKey))
             {
                 context.Result = new ContentResult()
                 {
