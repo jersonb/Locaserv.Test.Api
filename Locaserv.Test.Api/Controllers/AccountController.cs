@@ -1,28 +1,33 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Locaserv.Test.Api.Configurations;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.Extensions.Options;
 
 namespace Locaserv.Test.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [ApiKey]
     public class AccountController : ControllerBase
     {
+        private static ApiConfig apiConfig;
+
+        public AccountController(IOptions<ApiConfig> options)
+        {
+            apiConfig = options.Value;
+        }
+
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User user)
+        public IActionResult Login([FromBody] User user)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await SetLoggedInUser(user);
-            
-            return Ok();
+            return Ok(user);
         }
 
         [HttpGet("auth")]
-        [Authorize]
         public IActionResult Auth()
         {
             return Ok();
@@ -39,40 +44,6 @@ namespace Locaserv.Test.Api.Controllers
         {
             HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Ok();
-        }
-
-        private async Task SetLoggedInUser(User user)
-        {
-            var principal = GetClaimsPrincipal(user);
-
-            var properties = SetRememberMe(user.RememberMe);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
-        }
-
-        private static AuthenticationProperties SetRememberMe(bool remember)
-        {
-            var properties = new AuthenticationProperties
-            {
-                IsPersistent = remember
-            };
-            return properties;
-        }
-
-        private static ClaimsPrincipal GetClaimsPrincipal(User user)
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Expired, "NO"),
-                new Claim(ClaimTypes.NameIdentifier, user.UserName),
-                new Claim(ClaimTypes.Name, user.UserName),
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            var principal = new ClaimsPrincipal(identity);
-
-            return principal;
         }
     }
 }

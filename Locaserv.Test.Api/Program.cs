@@ -4,6 +4,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
 
+Environment.SetEnvironmentVariable("API_KEY", builder.Configuration.GetValue<string>("ApiKey"));
+
 services.SetSecurity();
 
 services.AddControllers();
